@@ -143,7 +143,7 @@
 #include <PID_v1.h>
 
 // ***** TYPE DEFINITIONS *****
-typedef enum REFLOW_STATE
+typedef enum REFLOW_STATE : uint8_t
 {
   REFLOW_STATE_IDLE,
   REFLOW_STATE_PREHEAT,
@@ -156,27 +156,27 @@ typedef enum REFLOW_STATE
   REFLOW_STATE_BAKE
 } reflowState_t;
 
-typedef enum REFLOW_STATUS
+typedef enum REFLOW_STATUS : uint8_t
 {
   REFLOW_STATUS_OFF,
   REFLOW_STATUS_ON
 } reflowStatus_t;
 
-typedef	enum SWITCH
+typedef	enum SWITCH : uint8_t
 {
   SWITCH_NONE,
   SWITCH_1,
   SWITCH_2
 } switch_t;
 
-typedef enum DEBOUNCE_STATE
+typedef enum DEBOUNCE_STATE : uint8_t
 {
   DEBOUNCE_STATE_IDLE,
   DEBOUNCE_STATE_CHECK,
   DEBOUNCE_STATE_RELEASE
 } debounceState_t;
 
-typedef enum REFLOW_PROFILE
+typedef enum REFLOW_PROFILE : uint8_t
 {
   REFLOW_PROFILE_LEADFREE,
   REFLOW_PROFILE_LEADED,
@@ -236,44 +236,56 @@ typedef enum REFLOW_PROFILE
 #endif
 
 // ***** LCD MESSAGES *****
-const char* lcdMessagesReflowStatus[] = {
-  "Ready",
-  "Pre",
-  "Soak",
-  "Reflow",
-  "Cool",
-  "Done!",
-  "Hot!",
-  "Error",
-  "Bake"
+const char lcdMessagesReflowStatus_1[] PROGMEM = "Ready";
+const char lcdMessagesReflowStatus_2[] PROGMEM = "Pre";
+const char lcdMessagesReflowStatus_3[] PROGMEM = "Soak";
+const char lcdMessagesReflowStatus_4[] PROGMEM = "Reflow";
+const char lcdMessagesReflowStatus_5[] PROGMEM = "Cool";
+const char lcdMessagesReflowStatus_6[] PROGMEM = "Done!";
+const char lcdMessagesReflowStatus_7[] PROGMEM = "Hot!";
+const char lcdMessagesReflowStatus_8[] PROGMEM = "Error";
+const char lcdMessagesReflowStatus_9[] PROGMEM = "Bake";
+
+const char* const lcdMessagesReflowStatus[] PROGMEM = {
+  lcdMessagesReflowStatus_1,
+  lcdMessagesReflowStatus_2,
+  lcdMessagesReflowStatus_3,
+  lcdMessagesReflowStatus_4,
+  lcdMessagesReflowStatus_5,
+  lcdMessagesReflowStatus_6,
+  lcdMessagesReflowStatus_7,
+  lcdMessagesReflowStatus_8,
+  lcdMessagesReflowStatus_9
 };
 
+#if VERSION == 1
 // ***** DEGREE SYMBOL FOR LCD *****
-unsigned char degree[8]  = {
+static const unsigned char degree[8] = {
   140, 146, 146, 140, 128, 128, 128, 128
 };
+#endif
 
 // ***** PIN ASSIGNMENT *****
 #if VERSION == 1
-unsigned char ssrPin = 3;
-unsigned char thermocoupleCSPin = 2;
-unsigned char lcdRsPin = 10;
-unsigned char lcdEPin = 9;
-unsigned char lcdD4Pin = 8;
-unsigned char lcdD5Pin = 7;
-unsigned char lcdD6Pin = 6;
-unsigned char lcdD7Pin = 5;
-unsigned char buzzerPin = 14;
-unsigned char switchPin = A1;
-unsigned char ledPin = LED_BUILTIN;
+static const unsigned char ssrPin = 3;
+static const unsigned char thermocoupleCSPin = 2;
+static const unsigned char lcdRsPin = 10;
+static const unsigned char lcdEPin = 9;
+static const unsigned char lcdD4Pin = 8;
+static const unsigned char lcdD5Pin = 7;
+static const unsigned char lcdD6Pin = 6;
+static const unsigned char lcdD7Pin = 5;
+static const unsigned char buzzerPin = 14;
+static const unsigned char switchPin = A1;
+static const unsigned char ledPin = LED_BUILTIN;
 #elif VERSION == 2
-unsigned char ssrPin = A0;
-unsigned char fanPin = A1;
-unsigned char thermocoupleCSPin = 10;
-unsigned char ledPin = 4;
-unsigned char buzzerPin = 5;
-unsigned char switchStartStopPin = 3;
-unsigned char switchLfPbPin = 2;
+static const unsigned char ssrPin = A0;
+static const unsigned char fanPin = A1;
+static const unsigned char thermocoupleCSPin = 10;
+static const unsigned char ledPin = 4;
+static const unsigned char buzzerPin = 5;
+static const unsigned char switchStartStopPin = 3;
+static const unsigned char switchLfPbPin = 2;
 #endif
 
 // ***** PID CONTROL VARIABLES *****
@@ -311,6 +323,7 @@ switch_t switchMask;
 unsigned int timerSeconds;
 // Thermocouple fault status
 unsigned char fault;
+
 #if VERSION == 2
 unsigned int timerUpdate;
 unsigned char temperature[SCREEN_WIDTH - X_AXIS_START];
@@ -495,13 +508,15 @@ void loop()
 
   if (millis() > updateLcd)
   {
+    char txtBuffer[8];
+    strcpy_P(txtBuffer, (char *)pgm_read_word(&(lcdMessagesReflowStatus[reflowState])));
     // Update LCD in the next 100 ms
     updateLcd += UPDATE_RATE;
 #if VERSION == 1
     // Clear LCD
     lcd.clear();
     // Print current system state
-    lcd.print(lcdMessagesReflowStatus[reflowState]);
+    lcd.print(txtBuffer);
     lcd.setCursor(6, 0);
     if (reflowProfile == REFLOW_PROFILE_LEADFREE)
     {
@@ -540,7 +555,7 @@ void loop()
     oled.clearDisplay();
     oled.setTextSize(2);
     oled.setCursor(0, 0);
-    oled.print(lcdMessagesReflowStatus[reflowState]);
+    oled.print(txtBuffer);
     oled.setTextSize(1);
     oled.setCursor(115, 0);
 
