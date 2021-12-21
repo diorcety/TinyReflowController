@@ -325,7 +325,24 @@ PID reflowOvenPID(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 // LCD interface
 LiquidCrystal lcd(lcdRsPin, lcdEPin, lcdD4Pin, lcdD5Pin, lcdD6Pin, lcdD7Pin);
 #elif VERSION == 2
-Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
+uint8_t SSD1306_SFB[SCREEN_WIDTH * ((SCREEN_HEIGHT + 7) / 8)];
+class Adafruit_SSD1306_SB : public Adafruit_SSD1306
+{
+public:
+  Adafruit_SSD1306_SB(uint8_t w, uint8_t h, TwoWire* twi = &Wire,
+    int8_t rst_pin = -1, uint32_t clkDuring = 400000UL,
+    uint32_t clkAfter = 100000UL) : Adafruit_SSD1306(w, h, twi, rst_pin, clkDuring, clkAfter)
+  {
+    buffer = SSD1306_SFB;
+
+  }
+  ~Adafruit_SSD1306_SB(void)
+  {
+    buffer = NULL;
+  }
+};
+
+Adafruit_SSD1306_SB oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 #endif
 // MAX31856 thermocouple interface
 Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(thermocoupleCSPin);
