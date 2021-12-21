@@ -311,7 +311,9 @@ unsigned char fault;
 #ifdef VERSION == 2
 unsigned int timerUpdate;
 unsigned char temperature[SCREEN_WIDTH - X_AXIS_START];
-unsigned char x;
+unsigned char xHead=0;
+unsigned char xCnt=0;
+unsigned char xScrollOffset=0;
 #endif
 
 // PID control interface
@@ -534,16 +536,26 @@ void loop()
     }
     
     // Temperature markers
-    oled.setCursor(0, 18);
+    oled.setCursor(0, 19);
     oled.print(F("250"));
     oled.setCursor(0, 36);
     oled.print(F("150"));
     oled.setCursor(0, 54);
     oled.print(F("50"));
     // Draw temperature and time axis
-    oled.drawLine(18, 18, 18, 63, WHITE);
-    oled.drawLine(18, 63, 127, 63, WHITE);
-    oled.setCursor(115, 0);
+    oled.drawLine(18, 18, 18, 63, WHITE); //left vertical line
+    oled.drawLine(18, 19, 20, 19, WHITE); //250 tick
+    oled.drawLine(18, 36, 20, 36, WHITE); //150 tick
+    oled.drawLine(18, 54, 20, 54, WHITE); //50 tick
+    oled.drawLine(18, 63, 127, 63, WHITE); //bottom horizontal line
+    //time markers, scroll with plot
+    oled.drawLine(38-xScrollOffset, 63, 38-xScrollOffset, 61, WHITE);
+    oled.drawLine(58-xScrollOffset, 63, 58-xScrollOffset, 61, WHITE);
+    oled.drawLine(78-xScrollOffset, 63, 78-xScrollOffset, 61, WHITE);
+    oled.drawLine(98-xScrollOffset, 63, 98-xScrollOffset, 61, WHITE);
+    oled.drawLine(118-xScrollOffset, 63, 118-xScrollOffset, 61, WHITE);
+    if (xScrollOffset>10)
+      oled.drawLine(138-xScrollOffset, 63, 138-xScrollOffset, 61, WHITE);
 
     // If currently in error state
     if (reflowState == REFLOW_STATE_ERROR)
@@ -573,18 +585,30 @@ void loop()
         {
           timerUpdate = timerSeconds;
           unsigned char averageReading = map(input, 0, 250, 63, 19);
-          if (x < (SCREEN_WIDTH - X_AXIS_START))
+          if (xCnt < (SCREEN_WIDTH - X_AXIS_START)) //haven't filled entire screen yet
           {
-            temperature[x++] = averageReading;
+            temperature[xCnt++] = averageReading;
+          }
+          else //screen full, scroll graph
+          {
+            temperature[xHead++] = averageReading;
+            if (xHead == (SCREEN_WIDTH - X_AXIS_START))
+              xHead=0;
+            xScrollOffset++;
+            if (xScrollOffset>19)
+              xScrollOffset=0;
           }
         }
       }
     }
     
-    unsigned char timeAxis;
-    for (timeAxis = 0; timeAxis < x; timeAxis++)
+    unsigned char timeAxis, tElem;
+    tElem=xHead;
+    for (timeAxis = 0; timeAxis < xCnt; timeAxis++)
     {
-      oled.drawPixel(timeAxis + X_AXIS_START, temperature[timeAxis], WHITE);
+      oled.drawPixel(timeAxis + X_AXIS_START, temperature[tElem++], WHITE);
+      if (tElem==(SCREEN_WIDTH - X_AXIS_START))
+        tElem=0;
     }
     
     // Update screen
@@ -614,13 +638,9 @@ void loop()
           #if VERSION == 2
           // Initialize reflow plot update timer
           timerUpdate = 0;
-          
-          for (x = 0; x < (SCREEN_WIDTH - X_AXIS_START); x++)
-          {
-            temperature[x] = 0;
-          }
-          // Initialize index for average temperature array used for reflow plot
-          x = 0;
+          xHead = 0;
+          xCnt = 0;
+          xScrollOffset=0;
           #endif
           
           // Initialize PID control window starting time
