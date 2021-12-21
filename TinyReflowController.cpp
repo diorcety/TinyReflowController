@@ -125,13 +125,20 @@
 
 *******************************************************************************/
 
+// ***** CONSTANTS *****
+// ***** GENERAL *****
+#define VERSION 2 // Replace with 1 or 2
+
 // ***** INCLUDES *****
 #include <SPI.h>
 #include <Wire.h>
 #include <EEPROM.h>
+#if VERSION == 1
 #include <LiquidCrystal.h>
-#include <Adafruit_GFX.h>      // Comment for VERSION 1
-#include <Adafruit_SSD1306.h>  // Comment for VERSION 1 
+#elif VERSION == 2
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#endif
 #include <Adafruit_MAX31856.h> 
 #include <PID_v1.h>
 
@@ -175,10 +182,6 @@ typedef enum REFLOW_PROFILE
   REFLOW_PROFILE_LEADED,
   REFLOW_PROFILE_BAKE
 } reflowProfile_t;
-
-// ***** CONSTANTS *****
-// ***** GENERAL *****
-#define VERSION 2 // Replace with 1 or 2
 
 // ***** GENERAL PROFILE CONSTANTS *****
 #define PROFILE_TYPE_ADDRESS 0
@@ -308,7 +311,7 @@ switch_t switchMask;
 unsigned int timerSeconds;
 // Thermocouple fault status
 unsigned char fault;
-#ifdef VERSION == 2
+#if VERSION == 2
 unsigned int timerUpdate;
 unsigned char temperature[SCREEN_WIDTH - X_AXIS_START];
 unsigned char xHead=0;
@@ -326,6 +329,8 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 #endif
 // MAX31856 thermocouple interface
 Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(thermocoupleCSPin);
+
+switch_t readSwitch(void);
 
 void setup()
 {
