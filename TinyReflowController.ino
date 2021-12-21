@@ -373,7 +373,7 @@ void setup()
   oled.display();
 #endif
   digitalWrite(buzzerPin, LOW);
-  delay(2000);
+  delay(1000);
 #if VERSION == 1
   lcd.clear();
   lcd.print(F(" v1.00  "));
@@ -393,7 +393,7 @@ void setup()
   oled.println();
   oled.println(F("      01-05-20"));
   oled.display();
-  delay(3000);
+  delay(2000);
   oled.clearDisplay();
 #endif
 
