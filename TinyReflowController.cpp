@@ -283,7 +283,7 @@ double output;
 double kp = PID_KP_PREHEAT;
 double ki = PID_KI_PREHEAT;
 double kd = PID_KD_PREHEAT;
-int windowSize;
+unsigned int windowSize;
 unsigned long windowStartTime;
 unsigned long nextCheck;
 unsigned long nextRead;
@@ -356,7 +356,7 @@ void setup()
   if ((value == 0) || (value == 1) || (value == 2))
   {
     // Valid reflow profile value
-    reflowProfile = value;
+    reflowProfile = static_cast<reflowProfile_t>(value);
   }
   else
   {
@@ -942,8 +942,8 @@ void loop()
 
 switch_t readSwitch(void)
 {
-  int switchAdcValue = 0;
 #if VERSION == 1
+  int switchAdcValue = 0;
   // Analog multiplexing switch
   switchAdcValue = analogRead(switchPin);
 
